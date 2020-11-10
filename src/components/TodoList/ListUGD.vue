@@ -18,45 +18,65 @@
      </v-card-title>
 
      <v-data-table :headers="headers" :items="todos" :search="search"  >
+        <!-- warna -->
+        <template v-slot:[`item.priority`]="{ item }">
+        <td>
+        <v-chip v-if="item.priority == 'Penting'" color="red" label outlined>
+            {{ item.priority }}
+        </v-chip>
+        <v-chip v-else-if="item.priority == 'Biasa'" color="success" label outlined>
+            {{ item.priority }}
+        </v-chip>
+        <v-chip v-else color="primary" label outlined>
+            {{ item.priority }}
+        </v-chip>
+        </td>
+        </template>
+
        <template v-slot:[`item.actions`]="{ item }">   
-        <v-btn small @click="dialogShow = true">
-           Note
+        <v-btn color="blue" @click="detailItem(item)">
+           <!-- <v-icon>mdi-heart</v-icon> -->Note
          </v-btn>
-         <v-btn small @click="editItem(item)">
-           edit
+         <v-btn color="green" @click="editItem(item)">
+           <!-- <v-icon>mdi-account</v-icon> -->Edit
          </v-btn>
-         <v-btn small @click="deleteItem(item); dialogDelete=true">
-           Delete
+         <v-btn color="red" @click="deleteItem(item)">
+           <!-- <v-icon>mdi-heart</v-icon> -->Delete
          </v-btn>
        </template>
      </v-data-table>
    </v-card>
-    <!-- dialog note -->
-    <!-- <v-dialog v-model="dialogShow" max-width="500px">
-        <v-card>
-            <v-card-text>
-            <v-container>
-                v-model="formTodo.task"
 
-                v-model="formTodo.priority"
-                :items="['Penting', 'Biasa', 'Tidak penting']"
-
-                v-model="formTodo.note"
-            </v-container>
-       </v-card-text>
-            <v-card-actions>
-            <v-btn color="primary" text @click="dialogShow = false">Close</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog> -->
-   <!-- dialog del -->
+   <!-- del dialog -->
     <v-dialog v-model="dialogDelete" max-width="500px">
         <v-card>
             <v-card-title>Delete</v-card-title>
             <v-card-text>Apakah anda yakin menghapus?</v-card-text>
             <v-card-actions>
             <v-btn color="primary" text @click="dialogDelete = false">Close</v-btn>
-            <v-btn color="primary" text @click="deleteItem(item); ">Delete</v-btn>
+            <v-btn color="primary" text @click="DeleteSebenarnya">Delete</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <!-- detail dialog -->
+    <v-dialog v-model="dialogDetail" max-width="500px">
+        <v-card>
+            <v-card-title>{{detail.task}}</v-card-title>
+            <v-container false>
+                <v-chip v-if="detail.priority == 'Penting'" color="red" label outlined>
+                    {{ detail.priority }}
+                </v-chip>
+                <v-chip v-else-if="detail.priority == 'Biasa'" color="success" label outlined>
+                    {{ detail.priority }}
+                </v-chip>
+                <v-chip v-else color="primary" label outlined>
+                    {{ detail.priority }}
+                </v-chip>
+            </v-container>
+            <v-card-text>{{detail.note}}</v-card-text>
+            <v-card-actions>
+            <v-btn color="primary" text @click="dialogDetail = false">Close</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -106,12 +126,13 @@ export default {
  name: "List",
  data() {
    return {
+    index:null,
      search: null,
      filter:null,
      dialog: false,
      editedIndex: -1,
      dialogDelete: false,
-     dialogShow: false,
+     dialogDetail: false,
      headers: [
        {
          text: "Task",
@@ -120,7 +141,6 @@ export default {
          value: "task",
        },
        { text: "Priority", value: "priority" },
-       { text: "Note", value: "note" },
        { text: "Actions", value: "actions" },
      ],
      todos: [
@@ -145,25 +165,30 @@ export default {
        priority: null,
        note: null,
      },
+     detail: {
+        task: null,
+        priority: null,
+        note: null,
+     },
    };
  },
  methods: {
     deleteItem(item){
-        const index = this.todos.indexOf(item)
-        this.formTodo = Object.assign({}, item)
+        this.index = this.todos.indexOf(item)
         this.dialogDelete = true
-        this.todos.splice(index, 1)
-    }
-    ,
-    showDeleteDialog(item) {
-        this.itemToDelete = item
-        this.dialogDelete = !this.dialogDelete
     },
-    // showDialog(item) {
-    //     const index = this.todos.indexOf(item)
-    //     this.itemToShow = item
-    //     this.dialogShow = !this.dialogShow
-    // },
+    DeleteSebenarnya(item) {
+        this.todos.splice(this.index,1)
+        this.dialogDelete = false
+    },
+    detailItem(item){
+        this.detail = {
+                task: item.task,
+                priority: item.priority,
+                note: item.note,
+            }
+        this.dialogDetail = true
+    },
    save() {
 
        if (this.editedIndex > -1) {
